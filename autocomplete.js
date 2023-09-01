@@ -126,16 +126,14 @@ function getCurrentKeys() {
   if (currentLevel != 0) {
     indexList.forEach((level) => {
       let matchingKeys = Object.keys(currentKeys).filter((key) =>
-        key.split(", ").includes(level)
+        key.split(", ").includes(level.toUpperCase())
       );
-      let tryExactKey = currentKeys[level];
 
-      currentKeys = tryExactKey || currentKeys[matchingKeys[0]];
+      currentKeys = currentKeys[level] || currentKeys[matchingKeys[0]];
     });
   }
 
-  console.log(Object.keys(currentKeys).flatMap((key) => key.split(", ")));
-  return Object.keys(currentKeys).flatMap((key) => [...key.split(", ")]);
+  return Object.keys(currentKeys).flatMap((key) => key.split(", "));
 }
 
 function getCurrentLevel() {

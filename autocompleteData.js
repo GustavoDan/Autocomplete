@@ -1,6 +1,6 @@
 export default {
-  SELECT: { "*, {coluna_tabelas}": { blablabla: {} } },
-  INSERT: { INTO: ["{tabela}"] },
-  UPDATE: { "{tabela}": { SET: [] } },
-  DELETE: { FROM: ["{tabela}"] },
+  SELECT: { "*, {COLUNA_TABELAS}": { BLABLABLA: {} } },
+  INSERT: { INTO: ["{TABELA}"] },
+  UPDATE: { "{TABELA}": { SET: [] } },
+  DELETE: { FROM: ["{TABELA}"] },
 };
