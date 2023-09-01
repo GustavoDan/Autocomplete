@@ -125,11 +125,17 @@ function getCurrentKeys() {
   let currentKeys = autocompleteData;
   if (currentLevel != 0) {
     indexList.forEach((level) => {
-      currentKeys = currentKeys[level];
+      let matchingKeys = Object.keys(currentKeys).filter((key) =>
+        key.split(", ").includes(level)
+      );
+      let tryExactKey = currentKeys[level];
+
+      currentKeys = tryExactKey || currentKeys[matchingKeys[0]];
     });
   }
 
-  return Object.keys(currentKeys);
+  console.log(Object.keys(currentKeys).flatMap((key) => key.split(", ")));
+  return Object.keys(currentKeys).flatMap((key) => [...key.split(", ")]);
 }
 
 function getCurrentLevel() {
