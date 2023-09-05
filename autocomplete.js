@@ -92,7 +92,6 @@ function completeText() {
   newLevel.textContent = currentText + autocomplete.textContent;
 
   queryInput.append(newLevel);
-  indexList.push(newLevel.textContent.toUpperCase());
 
   queryInput.append(NBSP);
   clearElements(sugestionList, autocomplete);
@@ -124,7 +123,9 @@ function getCurrentKeys() {
 
   let currentKeys = autocompleteData;
   if (currentLevel != 0) {
-    indexList.forEach((level) => {
+    let levels = getLevelsArray();
+    levels.forEach((level) => {
+      level = level.textContent;
       let matchingKeys = Object.keys(currentKeys).filter((key) =>
         key.split(", ").includes(level.toUpperCase())
       );
@@ -136,8 +137,12 @@ function getCurrentKeys() {
   return Object.keys(currentKeys).flatMap((key) => key.split(", "));
 }
 
+function getLevelsArray() {
+  return [...queryInput.querySelectorAll("[id^='level-']")];
+}
+
 function getCurrentLevel() {
-  let levels = [...queryInput.querySelectorAll("[id^='level-']")];
+  let levels = getLevelsArray();
   if (levels.length < 1) {
     return 0;
   }
@@ -215,7 +220,6 @@ function matchOptionsToInputSize() {
   sugestionList.style.width = `${queryInput.getBoundingClientRect().width}px`;
 }
 
-var indexList = [];
 const queryInput = document.querySelector("#query-input");
 const autocomplete = document.querySelector("#autocomplete");
 const sugestionList = document.querySelector("#sugestion-list");
