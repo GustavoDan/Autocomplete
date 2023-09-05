@@ -6,17 +6,17 @@ export default {
   },
   INSERT: {
     INTO: {
-      "{TABELA}": {},
+      "{TABLES}": {},
     },
   },
   UPDATE: {
-    "{TABELA}": {
+    "{TABLES}": {
       SET: {},
     },
   },
   DELETE: {
     FROM: {
-      "{TABELA}": {},
+      "{TABLES}": {},
     },
   },
 };

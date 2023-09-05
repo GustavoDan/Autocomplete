@@ -154,6 +154,15 @@ function getCurrentLevel() {
 function createOption(key) {
   let option = document.createElement("div");
   option.classList.add("sugestion-option");
+
+  if (/^\{.*\}$/.test(key)) {
+    key = key.replace(/[\{\}]/g, "");
+    let varData = sugestionList.getAttribute(`data-${key}`);
+    varData = varData.split(",");
+
+    varData.forEach((item) => createOption(item));
+    return;
+  }
   option.textContent = key;
 
   sugestionList.append(option);
