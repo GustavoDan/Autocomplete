@@ -2,6 +2,10 @@ import autocompleteData from "./autocompleteData.js";
 
 const AUTOCOMPLETE_DEFAULT_LEFT_MARGIN = 15;
 const NBSP = String.fromCharCode(160);
+const REGEX = {
+  IS_VAR: /^\{.*\}$/,
+  GET_BRACES: /[\{\}]/g,
+};
 
 function matchCase(str1, str2) {
   return str1.slice(-1) === str1.slice(-1).toUpperCase()
@@ -9,7 +13,12 @@ function matchCase(str1, str2) {
     : str2.toLowerCase();
 }
 
-function nonEmptyStartsWith(strCompare, strStart) {
+function nonEmptyStartsWith(strCompare, strStart, caseSensitive = false) {
+  if (!caseSensitive) {
+    strCompare = strCompare.toUpperCase();
+    strStart = strStart.toUpperCase();
+  }
+
   return strStart !== "" && strCompare.startsWith(strStart);
 }
 
@@ -90,6 +99,7 @@ function completeText() {
   }
 
   newLevel.textContent = currentText + autocomplete.textContent;
+  newLevel.setAttribute("value", getSelectedOption().getAttribute("value"));
 
   queryInput.append(newLevel);
 
@@ -99,21 +109,15 @@ function completeText() {
   setCaret(queryInput);
 }
 
+function getSelectedOption() {
+  return sugestionList.querySelector("[selected]");
+}
+
 function populateSugestionList(matchText = true) {
   clearElements(sugestionList, autocomplete);
-  let keys = getCurrentKeys();
-  let options = keys;
+  iterateOptions(getCurrentKeys(), matchText);
 
-  if (matchText) {
-    let currentText = trimIncludingNBSP(
-      queryInput.lastChild?.textContent.toUpperCase()
-    );
-    options = keys.filter((option) => nonEmptyStartsWith(option, currentText));
-  }
-
-  options.forEach((option) => createOption(option));
-
-  if (options.length > 0) {
+  if (sugestionList.firstChild) {
     setSelection(sugestionList.firstChild);
   }
 }
@@ -125,7 +129,7 @@ function getCurrentKeys() {
   if (currentLevel != 0) {
     let levels = getLevelsArray();
     levels.forEach((level) => {
-      level = level.textContent;
+      level = level.getAttribute("value");
       let matchingKeys = Object.keys(currentKeys).filter((key) =>
         key.split(", ").includes(level.toUpperCase())
       );
@@ -151,21 +155,40 @@ function getCurrentLevel() {
   return parseInt(currentLevel) + 1;
 }
 
-function createOption(key) {
+function iterateOptions(options, matchText, value) {
+  let currentText = trimIncludingNBSP(
+    queryInput.lastChild?.textContent.toUpperCase()
+  );
+
+  options.forEach((option) => {
+    if (REGEX.IS_VAR.test(option)) {
+      iterateOptions(splitVarValues(option), matchText, option);
+      return;
+    }
+
+    if (matchText && !nonEmptyStartsWith(option, currentText)) {
+      return;
+    }
+
+    createOption(option, value);
+  });
+}
+
+function splitVarValues(autocompleteVar) {
+  autocompleteVar = autocompleteVar.replace(REGEX.GET_BRACES, "");
+  autocompleteVar = sugestionList.getAttribute(`data-${autocompleteVar}`);
+  return autocompleteVar.split(",");
+}
+
+function createOption(key, value = key) {
   let option = document.createElement("div");
   option.classList.add("sugestion-option");
-
-  if (/^\{.*\}$/.test(key)) {
-    key = key.replace(/[\{\}]/g, "");
-    let varData = sugestionList.getAttribute(`data-${key}`);
-    varData = varData.split(",");
-
-    varData.forEach((item) => createOption(item));
-    return;
-  }
-  option.textContent = key;
+  option.setAttribute("value", value);
+  option.textContent = key.toUpperCase();
 
   sugestionList.append(option);
+
+  return option;
 }
 
 function setSelection(element) {
@@ -184,8 +207,7 @@ function removeSelection(element) {
 
 function setAutocompleteText() {
   let currentText = trimIncludingNBSP(queryInput.lastChild?.textContent);
-  let selectedOptionText =
-    sugestionList.querySelector("[selected]").textContent;
+  let selectedOptionText = getSelectedOption().textContent;
 
   autocomplete.textContent = matchCase(
     currentText,
@@ -210,7 +232,7 @@ function getTextWidth() {
 }
 
 function handleKeyboardSelectOption(event) {
-  let selectedOption = sugestionList.querySelector("[selected]");
+  let selectedOption = getSelectedOption();
   let pressedFunction = bodyKeyDownOptions[event.key];
   console.log(event.key);
 
