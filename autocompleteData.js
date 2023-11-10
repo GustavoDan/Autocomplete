@@ -1,12 +1,16 @@
 export default {
   SELECT: {
-    "*, {COLUNA_TABELAS}": {
-      BLABLABLA: {},
+    "*, {|COLUNA_TABELAS|}": {
+      FROM: {
+        "{TABLES}": {},
+      },
     },
   },
   INSERT: {
     INTO: {
-      "{TABLES}": {},
+      "{TABLES}": {
+        VALUES: {},
+      },
     },
   },
   UPDATE: {
