@@ -1,36 +1,42 @@
 <?php
-define('ROOT_DIR', __DIR__);
-include_once('utils/load_env.php');
-include_once('database/connection.php');
-include_once('database/get_vars.php')
+include_once('head.php');
+include_once('database/get_vars.php');
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css" />
-  <title>AutoComplete</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator_semanticui.min.css" rel="stylesheet">
+
+    <title>AutoComplete</title>
 </head>
 
 <body>
-  <div class="input-group mb-3 custom-input-wrapper">
-    <div class="form-control" id="query-input" contenteditable></div>
-    <span id="autocomplete"></span>
-    <div id="sugestion-list" <?php foreach ($autocomplete_vars as $key => $value) {
-                                echo "data-$key=$value ";
-                              } ?>></div>
+  <div id="content">
+    <img src="./images/mysql_logo.png" />
 
-    <div class="input-group-append">
-      <button class="btn btn-secondary" type="button">Executar</button>
+    <div class="container">
+      <div id="query-input" contenteditable></div>
+      <span id="autocomplete"></span>
+      <div id="sugestion-list" <?php foreach ($autocomplete_vars as $key => $value) {
+                                  echo "data-$key=$value ";
+                                } ?>></div>
+
+      <button id="send-button">Executar</button>
+    </div>
+    <div id="result-area" >
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
   <script type="module" src="autocomplete.js"></script>
+  <script type="module" src="sendSQLCommand.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+
+
 </body>
 
 </html>
