@@ -6,12 +6,12 @@ include_once('database/get_vars.php');
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator_semanticui.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator_semanticui.min.css" rel="stylesheet">
 
-    <title>AutoComplete</title>
+  <title>AutoComplete</title>
 </head>
 
 <body>
@@ -27,7 +27,7 @@ include_once('database/get_vars.php');
 
       <button id="send-button">Executar</button>
     </div>
-    <div id="result-area" >
+    <div id="result-area" class="tabulator">
     </div>
   </div>
 
