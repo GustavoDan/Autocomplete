@@ -1,6 +1,6 @@
 import autocompleteData from "./autocompleteData.js";
 
-const AUTOCOMPLETE_DEFAULT_LEFT_MARGIN = 15;
+const AUTOCOMPLETE_DEFAULT_LEFT_MARGIN = 12;
 const NBSP = String.fromCharCode(160);
 const REGEX = {
   IS_VAR: /^\{.*\}$/,
@@ -41,6 +41,30 @@ function setCaret(input) {
   sel.addRange(range);
 }
 
+function getCaretCharacterOffsetWithin(element) {
+  var caretOffset = 0;
+  var doc = element.ownerDocument || element.document;
+  var win = doc.defaultView || doc.parentWindow;
+  var sel;
+  if (typeof win.getSelection != "undefined") {
+    sel = win.getSelection();
+    if (sel.rangeCount > 0) {
+      var range = win.getSelection().getRangeAt(0);
+      var preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(element);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      caretOffset = preCaretRange.toString().length;
+    }
+  } else if ((sel = doc.selection) && sel.type != "Control") {
+    var textRange = sel.createRange();
+    var preCaretTextRange = doc.body.createTextRange();
+    preCaretTextRange.moveToElementText(element);
+    preCaretTextRange.setEndPoint("EndToEnd", textRange);
+    caretOffset = preCaretTextRange.text.length;
+  }
+  return caretOffset;
+}
+
 const bodyKeyDownOptions = {
   Escape(args) {
     clearElements(sugestionList);
@@ -54,8 +78,17 @@ const bodyKeyDownOptions = {
     completeText();
   },
   ArrowDown(args) {
+    args.event.preventDefault();
+    if (
+      getCaretCharacterOffsetWithin(queryInput) !==
+      queryInput.textContent.length
+    ) {
+      return;
+    }
     if (sugestionList.innerHTML === "") {
-      populateSugestionList(false);
+      populateSugestionList(
+        ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
+      );
     }
 
     if (args.selectedOption && args.selectedOption.nextElementSibling) {
@@ -67,7 +100,9 @@ const bodyKeyDownOptions = {
   },
   ArrowUp(args) {
     if (sugestionList.innerHTML === "") {
-      populateSugestionList(false);
+      populateSugestionList(
+        ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
+      );
     }
 
     if (args.selectedOption && args.selectedOption.previousElementSibling) {
@@ -80,10 +115,6 @@ const bodyKeyDownOptions = {
 };
 
 function completeText() {
-  if (autocomplete.textContent === "") {
-    return;
-  }
-
   let newLevel = document.createElement("span");
   newLevel.id = `level-${getCurrentLevel()}`;
   let currentText = "";
@@ -177,7 +208,7 @@ function iterateOptions(options, matchText, value) {
 function splitVarValues(autocompleteVar) {
   autocompleteVar = autocompleteVar.replace(REGEX.GET_BRACES, "");
   autocompleteVar = sugestionList.getAttribute(`data-${autocompleteVar}`);
-  return autocompleteVar.split(",");
+  return autocompleteVar ? autocompleteVar.split(",") : [];
 }
 
 function createOption(key, value = key) {
