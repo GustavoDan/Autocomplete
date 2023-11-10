@@ -1,10 +1,11 @@
 const NBSP = String.fromCharCode(160);
 const DATE_DB_FORMAT = "yyyy-MM-dd";
 const DATE_DISPLAY_FORMAT = "dd/MM/yyyy";
+const RUN_COMMAND_BACKEND_URL = "./database/run_command.php";
 
 function sendRunCommandRequest() {
   new Tabulator("#result-area", {
-    ajaxURL: "./database/run_command.php",
+    ajaxURL: RUN_COMMAND_BACKEND_URL,
     ajaxParams: {
       command: queryInput.innerText.replaceAll(NBSP, " "),
     },
@@ -12,7 +13,7 @@ function sendRunCommandRequest() {
     movableColumns: true,
     clipboard: true,
     autoColumns: true,
-    autoColumnsDefinitions: get_column_definitions,
+    autoColumnsDefinitions: getColumnDefinitions,
   });
 }
 
@@ -26,7 +27,7 @@ function titleCase(str) {
     .join(" ");
 }
 
-function get_column_definitions(definitions) {
+function getColumnDefinitions(definitions) {
   definitions.forEach((column) => {
     column.headerFilter = true;
     column.title = titleCase(column.field.replace("_", " "));
