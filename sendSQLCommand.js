@@ -57,6 +57,7 @@ function getColumnDefinitions(definitions, isSelect) {
         column.headerHozAlign = "center";
         column.vertAlign = "middle";
         column.resizable = false;
+        column.formatter = "textarea";
 
         if (column.field.toLowerCase().includes("data")) {
             column.formatter = "datetime";

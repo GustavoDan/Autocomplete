@@ -12,7 +12,7 @@ try {
         "affected_rows" => $command->rowCount(),
         "returned_data" => $command->fetchAll(PDO::FETCH_ASSOC),
     ]);
-} catch (PDOException | ValueError) {
-    echo json_encode([]);
+} catch (PDOException | ValueError $e) {
+    echo json_encode(["error" => $e->getMessage()]);
     die;
 }
