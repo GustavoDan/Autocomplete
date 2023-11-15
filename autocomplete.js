@@ -3,283 +3,284 @@ import autocompleteData from "./autocompleteData.js";
 const AUTOCOMPLETE_DEFAULT_LEFT_MARGIN = 12;
 const NBSP = String.fromCharCode(160);
 const REGEX = {
-  IS_VAR: /^\{.*\}$/,
-  GET_BRACES: /[\{\}]/g,
+    IS_VAR: /^\{.*\}$/,
+    GET_BRACES: /[\{\}]/g,
 };
 
 function matchCase(str1, str2) {
-  return str1.slice(-1) === str1.slice(-1).toUpperCase()
-    ? str2.toUpperCase()
-    : str2.toLowerCase();
+    return str1.slice(-1) === str1.slice(-1).toUpperCase()
+        ? str2.toUpperCase()
+        : str2.toLowerCase();
 }
 
 function nonEmptyStartsWith(strCompare, strStart, caseSensitive = false) {
-  if (!caseSensitive) {
-    strCompare = strCompare.toUpperCase();
-    strStart = strStart.toUpperCase();
-  }
+    if (!caseSensitive) {
+        strCompare = strCompare.toUpperCase();
+        strStart = strStart.toUpperCase();
+    }
 
-  return strStart !== "" && strCompare.startsWith(strStart);
+    return strStart !== "" && strCompare.startsWith(strStart);
 }
 
 function trimIncludingNBSP(str) {
-  return str?.replaceAll(NBSP, " ").trim() || "";
+    return str?.replaceAll(NBSP, " ").trim() || "";
 }
 
 function clearElements() {
-  [...arguments].forEach((element) => (element.innerHTML = ""));
+    [...arguments].forEach((element) => (element.innerHTML = ""));
 }
 
 function setCaret(input) {
-  let range = document.createRange();
-  let sel = window.getSelection();
+    let range = document.createRange();
+    let sel = window.getSelection();
 
-  range.setStart(input.childNodes[input.childNodes.length - 1], 1);
-  range.collapse(true);
+    range.setStart(input.childNodes[input.childNodes.length - 1], 1);
+    range.collapse(true);
 
-  sel.removeAllRanges();
-  sel.addRange(range);
+    sel.removeAllRanges();
+    sel.addRange(range);
 }
 
 function getCaretCharacterOffsetWithin(element) {
-  var caretOffset = 0;
-  var doc = element.ownerDocument || element.document;
-  var win = doc.defaultView || doc.parentWindow;
-  var sel;
-  if (typeof win.getSelection != "undefined") {
-    sel = win.getSelection();
-    if (sel.rangeCount > 0) {
-      var range = win.getSelection().getRangeAt(0);
-      var preCaretRange = range.cloneRange();
-      preCaretRange.selectNodeContents(element);
-      preCaretRange.setEnd(range.endContainer, range.endOffset);
-      caretOffset = preCaretRange.toString().length;
+    var caretOffset = 0;
+    var doc = element.ownerDocument || element.document;
+    var win = doc.defaultView || doc.parentWindow;
+    var sel;
+    if (typeof win.getSelection != "undefined") {
+        sel = win.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = win.getSelection().getRangeAt(0);
+            var preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(element);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            caretOffset = preCaretRange.toString().length;
+        }
+    } else if ((sel = doc.selection) && sel.type != "Control") {
+        var textRange = sel.createRange();
+        var preCaretTextRange = doc.body.createTextRange();
+        preCaretTextRange.moveToElementText(element);
+        preCaretTextRange.setEndPoint("EndToEnd", textRange);
+        caretOffset = preCaretTextRange.text.length;
     }
-  } else if ((sel = doc.selection) && sel.type != "Control") {
-    var textRange = sel.createRange();
-    var preCaretTextRange = doc.body.createTextRange();
-    preCaretTextRange.moveToElementText(element);
-    preCaretTextRange.setEndPoint("EndToEnd", textRange);
-    caretOffset = preCaretTextRange.text.length;
-  }
-  return caretOffset;
+    return caretOffset;
 }
 
 const bodyKeyDownOptions = {
-  Escape(args) {
-    clearElements(sugestionList);
-  },
-  Enter(args) {
-    args.event.preventDefault();
-    completeText();
-  },
-  Tab(args) {
-    args.event.preventDefault();
-    completeText();
-  },
-  ArrowDown(args) {
-    args.event.preventDefault();
-    if (
-      getCaretCharacterOffsetWithin(queryInput) !==
-      queryInput.textContent.length
-    ) {
-      return;
-    }
-    if (sugestionList.innerHTML === "") {
-      populateSugestionList(
-        ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
-      );
-    }
+    Escape(args) {
+        clearElements(sugestionList);
+    },
+    Enter(args) {
+        args.event.preventDefault();
+        completeText();
+    },
+    Tab(args) {
+        args.event.preventDefault();
+        completeText();
+    },
+    ArrowDown(args) {
+        args.event.preventDefault();
+        if (
+            getCaretCharacterOffsetWithin(queryInput) !==
+            queryInput.textContent.length
+        ) {
+            return;
+        }
+        if (sugestionList.innerHTML === "") {
+            populateSugestionList(
+                ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
+            );
+        }
 
-    if (args.selectedOption && args.selectedOption.nextElementSibling) {
-      setSelection(args.selectedOption.nextElementSibling);
-      return;
-    }
+        if (args.selectedOption && args.selectedOption.nextElementSibling) {
+            setSelection(args.selectedOption.nextElementSibling);
+            return;
+        }
 
-    setSelection(sugestionList.firstElementChild);
-  },
-  ArrowUp(args) {
-    if (sugestionList.innerHTML === "") {
-      populateSugestionList(
-        ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
-      );
-    }
+        setSelection(sugestionList.firstElementChild);
+    },
+    ArrowUp(args) {
+        if (sugestionList.innerHTML === "") {
+            populateSugestionList(
+                ![undefined, NBSP].includes(queryInput.lastChild?.textContent)
+            );
+        }
 
-    if (args.selectedOption && args.selectedOption.previousElementSibling) {
-      setSelection(args.selectedOption.previousElementSibling);
-      return;
-    }
+        if (args.selectedOption && args.selectedOption.previousElementSibling) {
+            setSelection(args.selectedOption.previousElementSibling);
+            return;
+        }
 
-    setSelection(sugestionList.lastElementChild);
-  },
+        setSelection(sugestionList.lastElementChild);
+    },
 };
 
 function completeText() {
-  let newLevel = document.createElement("span");
-  newLevel.id = `level-${getCurrentLevel()}`;
-  let currentText = "";
+    let newLevel = document.createElement("span");
+    newLevel.id = `level-${getCurrentLevel()}`;
+    let currentText = "";
 
-  if (queryInput.textContent !== "") {
-    let textNode = queryInput.lastChild;
-    currentText = trimIncludingNBSP(textNode.textContent);
-    textNode.remove();
-  }
+    if (queryInput.textContent !== "") {
+        let textNode = queryInput.lastChild;
+        currentText = trimIncludingNBSP(textNode.textContent);
+        textNode.remove();
+    }
 
-  if (queryInput.querySelector("span")) {
+    if (queryInput.querySelector("span")) {
+        queryInput.append(NBSP);
+    }
+
+    newLevel.textContent = currentText + autocomplete.textContent;
+    newLevel.setAttribute("value", getSelectedOption().getAttribute("value"));
+
+    queryInput.append(newLevel);
+
     queryInput.append(NBSP);
-  }
+    clearElements(sugestionList, autocomplete);
 
-  newLevel.textContent = currentText + autocomplete.textContent;
-  newLevel.setAttribute("value", getSelectedOption().getAttribute("value"));
-
-  queryInput.append(newLevel);
-
-  queryInput.append(NBSP);
-  clearElements(sugestionList, autocomplete);
-
-  setCaret(queryInput);
+    setCaret(queryInput);
 }
 
 function getSelectedOption() {
-  return sugestionList.querySelector("[selected]");
+    return sugestionList.querySelector("[selected]");
 }
 
 function populateSugestionList(matchText = true) {
-  clearElements(sugestionList, autocomplete);
-  iterateOptions(getCurrentKeys(), matchText);
+    clearElements(sugestionList, autocomplete);
+    iterateOptions(getCurrentKeys(), matchText);
 
-  if (sugestionList.firstChild) {
-    setSelection(sugestionList.firstChild);
-  }
+    if (sugestionList.firstChild) {
+        setSelection(sugestionList.firstChild);
+    }
 }
 
 function getCurrentKeys() {
-  let currentLevel = getCurrentLevel();
+    let currentLevel = getCurrentLevel();
 
-  let currentKeys = autocompleteData;
-  if (currentLevel != 0) {
-    let levels = getLevelsArray();
-    levels.forEach((level) => {
-      level = level.getAttribute("value");
-      let matchingKeys = Object.keys(currentKeys).filter((key) =>
-        key.split(", ").includes(level.toUpperCase())
-      );
+    let currentKeys = autocompleteData;
+    if (currentLevel != 0) {
+        let levels = getLevelsArray();
+        levels.forEach((level) => {
+            level = level.getAttribute("value");
+            let matchingKeys = Object.keys(currentKeys).filter((key) =>
+                key.split(", ").includes(level.toUpperCase())
+            );
 
-      currentKeys = currentKeys[level] || currentKeys[matchingKeys[0]];
-    });
-  }
+            currentKeys = currentKeys[level] || currentKeys[matchingKeys[0]];
+        });
+    }
 
-  return Object.keys(currentKeys).flatMap((key) => key.split(", "));
+    return Object.keys(currentKeys).flatMap((key) => key.split(", "));
 }
 
 function getLevelsArray() {
-  return [...queryInput.querySelectorAll("[id^='level-']")];
+    return [...queryInput.querySelectorAll("[id^='level-']")];
 }
 
 function getCurrentLevel() {
-  let levels = getLevelsArray();
-  if (levels.length < 1) {
-    return 0;
-  }
+    let levels = getLevelsArray();
+    if (levels.length < 1) {
+        return 0;
+    }
 
-  let currentLevel = levels.slice(-1)[0].id.split("-")[1];
-  return parseInt(currentLevel) + 1;
+    let currentLevel = levels.slice(-1)[0].id.split("-")[1];
+    return parseInt(currentLevel) + 1;
 }
 
 function iterateOptions(options, matchText, value) {
-  let currentText = trimIncludingNBSP(
-    queryInput.lastChild?.textContent.toUpperCase()
-  );
+    let currentText = trimIncludingNBSP(
+        queryInput.lastChild?.textContent.toUpperCase()
+    );
 
-  options.forEach((option) => {
-    if (REGEX.IS_VAR.test(option)) {
-      iterateOptions(splitVarValues(option), matchText, option);
-      return;
-    }
+    options.forEach((option) => {
+        if (REGEX.IS_VAR.test(option)) {
+            iterateOptions(splitVarValues(option), matchText, option);
+            return;
+        }
 
-    if (matchText && !nonEmptyStartsWith(option, currentText)) {
-      return;
-    }
+        if (matchText && !nonEmptyStartsWith(option, currentText)) {
+            return;
+        }
 
-    createOption(option, value);
-  });
+        createOption(option, value);
+    });
 }
 
 function splitVarValues(autocompleteVar) {
-  autocompleteVar = autocompleteVar.replace(REGEX.GET_BRACES, "");
-  autocompleteVar = sugestionList.getAttribute(`data-${autocompleteVar}`);
-  return autocompleteVar ? autocompleteVar.split(",") : [];
+    autocompleteVar = autocompleteVar.replace(REGEX.GET_BRACES, "");
+    autocompleteVar = sugestionList.getAttribute(`data-${autocompleteVar}`);
+    return autocompleteVar ? autocompleteVar.split(",") : [];
 }
 
 function createOption(key, value = key) {
-  let option = document.createElement("div");
-  option.classList.add("sugestion-option");
-  option.setAttribute("value", value);
-  option.textContent = key.toUpperCase();
+    let option = document.createElement("div");
+    option.classList.add("sugestion-option");
+    option.setAttribute("value", value);
+    option.textContent = key.toUpperCase();
 
-  sugestionList.append(option);
+    sugestionList.append(option);
 
-  return option;
+    return option;
 }
 
 function setSelection(element) {
-  clearOptions();
-  element.setAttribute("selected", "");
-  setAutocompleteText();
+    clearOptions();
+    element.setAttribute("selected", "");
+    setAutocompleteText();
 }
 
 function clearOptions() {
-  [...sugestionList.children].forEach((child) => removeSelection(child));
+    [...sugestionList.children].forEach((child) => removeSelection(child));
 }
 
 function removeSelection(element) {
-  element.removeAttribute("selected");
+    element.removeAttribute("selected");
 }
 
 function setAutocompleteText() {
-  let currentText = trimIncludingNBSP(queryInput.lastChild?.textContent);
-  let selectedOptionText = getSelectedOption().textContent;
+    let currentText = trimIncludingNBSP(queryInput.lastChild?.textContent);
+    let selectedOptionText = getSelectedOption().textContent;
 
-  autocomplete.textContent = matchCase(
-    currentText,
-    selectedOptionText.slice(currentText.length)
-  );
+    autocomplete.textContent = matchCase(
+        currentText,
+        selectedOptionText.slice(currentText.length)
+    );
 
-  setAutocompletePosition();
+    setAutocompletePosition();
 }
 
 function setAutocompletePosition() {
-  let autocompleteMargin =
-    AUTOCOMPLETE_DEFAULT_LEFT_MARGIN + (autocomplete.textContent === "" && 12);
-  autocomplete.style.left = `${getTextWidth() + autocompleteMargin}px`;
+    let autocompleteMargin =
+        AUTOCOMPLETE_DEFAULT_LEFT_MARGIN +
+        (autocomplete.textContent === "" && 12);
+    autocomplete.style.left = `${getTextWidth() + autocompleteMargin}px`;
 }
 
 function getTextWidth() {
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
 
-  context.font = window.getComputedStyle(queryInput).font;
-  return context.measureText(queryInput.textContent).width;
+    context.font = window.getComputedStyle(queryInput).font;
+    return context.measureText(queryInput.textContent).width;
 }
 
 function handleKeyboardSelectOption(event) {
-  let selectedOption = getSelectedOption();
-  let pressedFunction = bodyKeyDownOptions[event.key];
-  console.log(event.key);
+    let selectedOption = getSelectedOption();
+    let pressedFunction = bodyKeyDownOptions[event.key];
+    console.log(event.key);
 
-  if (pressedFunction) {
-    bodyKeyDownOptions[event.key]({ event, selectedOption });
-  }
+    if (pressedFunction) {
+        bodyKeyDownOptions[event.key]({ event, selectedOption });
+    }
 }
 
 function handleMouseSelectOption(event) {
-  if (event.target.classList.contains("sugestion-option")) {
-    setSelection(event.target);
-  }
+    if (event.target.classList.contains("sugestion-option")) {
+        setSelection(event.target);
+    }
 }
 
 function matchOptionsToInputSize() {
-  sugestionList.style.width = `${queryInput.getBoundingClientRect().width}px`;
+    sugestionList.style.width = `${queryInput.getBoundingClientRect().width}px`;
 }
 
 const queryInput = document.querySelector("#query-input");
@@ -289,11 +290,11 @@ const sugestionList = document.querySelector("#sugestion-list");
 queryInput.addEventListener("input", populateSugestionList);
 
 document.body.addEventListener("keydown", (event) => {
-  handleKeyboardSelectOption(event);
+    handleKeyboardSelectOption(event);
 });
 
 sugestionList.addEventListener("mousemove", (event) => {
-  handleMouseSelectOption(event);
+    handleMouseSelectOption(event);
 });
 
 sugestionList.addEventListener("click", completeText);

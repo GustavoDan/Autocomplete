@@ -1,26 +1,26 @@
 export default {
-  SELECT: {
-    "*, {|COLUNA_TABELAS|}": {
-      FROM: {
-        "{TABLES}": {},
-      },
+    SELECT: {
+        "*, {|COLUNA_TABELAS|}": {
+            FROM: {
+                "{TABLES}": {},
+            },
+        },
     },
-  },
-  INSERT: {
-    INTO: {
-      "{TABLES}": {
-        VALUES: {},
-      },
+    INSERT: {
+        INTO: {
+            "{TABLES}": {
+                VALUES: {},
+            },
+        },
     },
-  },
-  UPDATE: {
-    "{TABLES}": {
-      SET: {},
+    UPDATE: {
+        "{TABLES}": {
+            SET: {},
+        },
     },
-  },
-  DELETE: {
-    FROM: {
-      "{TABLES}": {},
+    DELETE: {
+        FROM: {
+            "{TABLES}": {},
+        },
     },
-  },
 };
