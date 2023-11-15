@@ -11,7 +11,7 @@ function sendRunCommandRequest() {
         ajaxParams: {
             command,
         },
-        ajaxResponse: (_, __, response) => handleResponse(response),
+        ajaxResponse: (_, __, response) => handleResponse(response, isSelect),
         layout: "fitColumns",
         movableColumns: true,
         clipboard: true,
@@ -30,11 +30,11 @@ function titleCase(str) {
         .join(" ");
 }
 
-function handleResponse(response) {
-    if (response.length === 0) {
-        response = [{ "No results found for this query": "-" }];
-    } else if (response.returned_data?.length > 0) {
+function handleResponse(response, isSelect) {
+    if (response.returned_data?.length > 0) {
         response = response.returned_data;
+    } else if (isSelect) {
+        response = [{ "No results found for this query": "-" }];
     } else {
         delete response.returned_data;
         response = [response];
